@@ -17,13 +17,17 @@ As of now the display can:
 
 # TODO
 
-- [] display weather forecast
-- [] include scripts used to generate images
-- [] extract all networking code
-- [] battery indicator
-- [] make it configurable via remote service or internal server
-  - [] screen size
-  - [] duration between slides
-  - [] location (for weather)
-  - [] network credentials
-- [] remove the use of `String`
+- [ ] display weather forecast
+- [ ] include scripts used to generate images
+- [ ] extract all networking code
+- [ ] battery indicator
+- [ ] make it configurable via remote service or internal server
+  - [ ] screen size
+  - [ ] duration between slides
+  - [ ] location (for weather)
+  - [ ] network credentials
+- [ ] remove the use of `String`
+
+# Images
+![On this day](./images/on-this-day.jpg "On This Day")
+![Year progress](./images/year.jpg "Year Progress")
