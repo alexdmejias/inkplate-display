@@ -6,86 +6,36 @@
 #include "SdFat.h"    //Include library for SD card
 #include "driver/rtc_io.h"
 #include "Arduino.h"
-#include "FreeSans18pt7b.h"
+
+#include "globals.h"
+#include "draw.h"
+// #include "network.h"
 
 Inkplate display(INKPLATE_3BIT); // Create an object on Inkplate library and also set library into 1 Bit mode (BW)
 SdFile file;
 
-#define uS_TO_S_FACTOR 1000000 // Conversion factor for micro seconds to seconds
-#define TIME_TO_SLEEP 30       // How long ESP32 will be in deep sleep (in seconds)
+Draw d;
 
-char baseImageDir[] = "day-images/%i/%i/%i.png";
-int month = 1;
-int day = 23;
-RTC_DATA_ATTR int imageIndex = 0;
-RTC_DATA_ATTR int refreshIndex = 0;
-
-char *getImageAddress(char *imageAddress, int month, int day, int index)
+void connectWifi()
 {
-  sprintf(imageAddress, baseImageDir, month, day, index);
 
-  return imageAddress;
-}
+  int ConnectCount = 20;
 
-void drawBoxes()
-{
-  const uint8_t marginLeft = 60;
-  const uint8_t marginTop = 142;
-  const unsigned int amountOfBoxes = 364;
-  const uint8_t columns = 28;
-  const uint8_t rows = 13;
-  const uint8_t boxSize = 30;
-  const uint8_t boxMargin = 8;
-  const uint8_t currDay = 182;
-
-  for (uint8_t i = 0; i < rows; i++)
+  if (WiFi.status() != WL_CONNECTED)
   {
-    for (uint8_t j = 0; j < columns; j++)
+    while (WiFi.status() != WL_CONNECTED)
     {
-      int x = marginLeft + (boxMargin * (j + 1)) + (boxSize * j);
-      int y = marginTop + (boxMargin * (i + 1)) + (boxSize * i);
-      int curr = (i * columns) + j;
-
-      if (curr <= currDay)
+      if (ConnectCount++ == 20)
       {
-        display.fillRoundRect(x, y, boxSize, boxSize, 2, BLACK);
+        Serial.println("Connect WiFi");
+        WiFi.begin(globals::ssid, globals::password);
+        Serial.println("Connecting.");
+        ConnectCount = 0;
       }
-      else
-      {
-        display.drawRoundRect(x, y, boxSize, boxSize, 2, BLACK);
-      }
+      Serial.print(".");
+      delay(1000);
     }
   }
-  display.setCursor(marginLeft, 795 - marginLeft);
-  display.setFont(&FreeSans18pt7b);
-  display.setTextColor(0, 7);
-  display.setTextSize(1);
-
-  String num = String(round((currDay / 365.0) * 100), 0);
-
-  display.print(String("Year: ") + num + String("% Complete"));
-}
-
-void drawImage()
-{
-  SdFile file;
-  char *imageAddress;
-  imageAddress = new char[60];
-  imageAddress = getImageAddress(imageAddress, month, day, imageIndex);
-
-  if (file.open(imageAddress, O_RDONLY))
-  {
-    Serial.println("file exists");
-  }
-  else
-  {
-    Serial.println("file does not exist");
-    imageIndex = 0;
-    imageAddress = getImageAddress(imageAddress, month, day, imageIndex);
-  }
-
-  display.drawImage(imageAddress, 0, 0, 0, 1);
-  imageIndex++;
 }
 
 void setup()
@@ -94,34 +44,31 @@ void setup()
   display.begin();        // Init Inkplate library (you should call this function ONLY ONCE)
   display.clearDisplay(); // Clear frame buffer of display
 
-  // Init SD card. Display if SD card is init propery or not.
-  if (display.sdCardInit())
+  // TODO should only happen if RTC is not set
+  connectWifi();
+
+  configTime(globals::gmtOffset_sec, globals::daylightOffset_sec, globals::ntpServer);
+
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo))
   {
-    Serial.println("SD Card ok! Reading data...");
-    if (refreshIndex % 2 == 0)
-    {
-      drawImage();
-    }
-    else
-    {
-      drawBoxes();
-    }
-    refreshIndex++;
-  }
-  else
-  {
-    display.setCursor(50, 50);
-    display.setTextColor(0, 7);
-    display.setTextSize(4);
-    display.print("error loading sd card");
-    Serial.println("error loading sd card");
+    Serial.println("Failed to obtain time");
+    return;
   }
 
-  display.display();
+  WiFi.disconnect();
+  // display.rtcSetTime(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);                               // Send time to RTC
+  display.rtcSetDate(timeinfo.tm_wday, timeinfo.tm_mday, timeinfo.tm_mon, timeinfo.tm_year + 1900); // Send date to RTC
+
+  display.rtcGetRtcData();
+  d.update(display);
+
+  Serial.println(display.readBattery());
+  Serial.println(display.readTemperature(), DEC);
 
   // DO NOT DELETE
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR); // Activate wake-up timer -- wake up after 20s here
-  esp_deep_sleep_start();                                        // Put ESP32 into deep sleep. Program stops here.
+  esp_sleep_enable_timer_wakeup(globals::TIME_TO_SLEEP * globals::uS_TO_S_FACTOR); // Activate wake-up timer
+  esp_deep_sleep_start();                                                          // Put ESP32 into deep sleep. Program stops here.
 
   Serial.println("End setup");
 }
