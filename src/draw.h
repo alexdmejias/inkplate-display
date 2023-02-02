@@ -1,8 +1,17 @@
 #pragma once
 
+#include <ArduinoJson.h>
 #include "Inkplate.h"
 #include "FreeSans18pt7b.h"
 #include "globals.h"
+
+#include <HTTPClient.h>
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
+
+#include "network.h"
+
+Network network;
 
 class Draw
 {
@@ -11,27 +20,29 @@ class Draw
 public:
     void update(Inkplate &d)
     {
-        if (d.sdCardInit())
-        {
-            Serial.println("SD Card ok! Reading data...");
-            if (globals::refreshIndex % 2 == 0)
-            {
-                drawImage(d);
-            }
-            else
-            {
-                drawBoxes(d);
-            }
-            globals::refreshIndex++;
-        }
-        else
-        {
-            d.setCursor(50, 50);
-            d.setTextColor(0, 7);
-            d.setTextSize(4);
-            d.print("error loading sd card");
-            Serial.println("error loading sd card");
-        }
+        // if (d.sdCardInit())
+        // {
+        //     Serial.println("SD Card ok! Reading data...");
+        //     if (globals::refreshIndex % 2 == 0)
+        //     {
+        //         drawImage(d);
+        //     }
+        //     else
+        //     {
+        // drawBoxes(d);
+        //     }
+        //     globals::refreshIndex++;
+        // }
+        // else
+        // {
+        //     d.setCursor(50, 50);
+        //     d.setTextColor(0, 7);
+        //     d.setTextSize(4);
+        //     d.print("error loading sd card");
+        //     Serial.println("error loading sd card");
+        // }
+
+        drawRedditPosts(d);
 
         d.display();
     }
@@ -177,5 +188,63 @@ private:
 
         d.drawImage(imageAddress, 0, 0, 0, 1);
         globals::imageIndex++;
+    }
+
+    void drawRedditPosts(Inkplate &d)
+    {
+        d.setCursor(0, 50);
+        d.setFont(&FreeSans18pt7b);
+        d.setTextColor(0, 7);
+        int MAX_INPUT_LENGTH = 2000;
+        DynamicJsonDocument doc(2000);
+        network.connect();
+
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            HTTPClient http;
+
+            http.getStream().setNoDelay(true);
+            http.getStream().setTimeout(1);
+            http.begin(reddit_listings_url);
+
+            int httpResponseCode = http.GET();
+
+            if (httpResponseCode > 0)
+            {
+                // Serial.println("alexalexalex aaaaaaaa");
+                DeserializationError error = deserializeJson(doc, http.getStream());
+                if (error)
+                {
+                    // Serial.println("alexalexalex eeeeeee");
+                    Serial.print("deserializeJson() failed: ");
+                    Serial.println(error.c_str());
+                    return;
+                }
+                // Serial.println("alexalexalex fffffff");
+                for (JsonObject item : doc.as<JsonArray>())
+                {
+                    // const char *title = item["title"];     // "has anyone else noticed an increase in people screaming at ...
+                    const char *created = item["created"]; // "2/2/2023", "2/2/2023", "2/2/2023"
+
+                    d.println(item["title"].as<const char *>());
+                }
+
+                // d.display();
+                // Serial.println("alexalexalex bbbbb");
+            }
+            else
+            {
+                // Serial.println("alexalexalex gggggg");
+                Serial.print("Error code: ");
+                Serial.println(httpResponseCode);
+            }
+            // Serial.println("alexalexalex ccccccccc");
+            http.end();
+        }
+        else
+        {
+            // Serial.println("alexalexalex ddddddd");
+            Serial.println("WiFi Disconnected");
+        }
     }
 };

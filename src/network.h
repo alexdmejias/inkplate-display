@@ -43,7 +43,17 @@ public:
         }
     }
 
-    void setTime(Inkplate &d)
+    void connect()
+    {
+        WiFi.begin(ssid_name, ssid_password); // Try to connect to WiFi network
+        Serial.println("drawRedditPosts()");
+        while (WiFi.status() != WL_CONNECTED)
+        {
+            delay(1000);
+        }
+    }
+
+        void setTime(Inkplate &d)
     {
         configTime(globals::gmtOffset_sec, globals::daylightOffset_sec, globals::ntpServer);
 
