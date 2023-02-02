@@ -19,6 +19,8 @@ As of now the display can:
 # TODO
 
 - [ ] display weather forecast
+- [ ] display when it was last updated
+- [ ] data should be cached
 - [ ] sub reddit info
 - [ ] dad jokes
 - [ ] include scripts used to generate images
