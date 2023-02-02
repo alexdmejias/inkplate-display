@@ -43,7 +43,7 @@ public:
         }
     }
 
-    void connect()
+    bool connect()
     {
         WiFi.begin(ssid_name, ssid_password); // Try to connect to WiFi network
         Serial.println("drawRedditPosts()");
@@ -51,9 +51,27 @@ public:
         {
             delay(1000);
         }
+
+        if (WiFi.status() == WL_CONNECTED)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 
-        void setTime(Inkplate &d)
+    int setupClientForStream(HTTPClient &http, const char *url)
+    {
+        http.getStream().setNoDelay(true);
+        http.getStream().setTimeout(1);
+        http.begin(url);
+
+        return http.GET();
+    }
+
+    void setTime(Inkplate &d)
     {
         configTime(globals::gmtOffset_sec, globals::daylightOffset_sec, globals::ntpServer);
 
