@@ -7,6 +7,7 @@ This repo is the source code for a personal display that uses an Inkplate 10 e-i
 # Current State
 
 As of now the display can:
+
 - Display images based on the date
   - images are loaded from a micro SD from a path `day-images/%M/%D/%I.png`
     - `%M` is the month
@@ -18,6 +19,8 @@ As of now the display can:
 # TODO
 
 - [ ] display weather forecast
+- [ ] sub reddit info
+- [ ] dad jokes
 - [ ] include scripts used to generate images
 - [ ] extract all networking code
 - [ ] battery indicator
@@ -29,5 +32,6 @@ As of now the display can:
 - [ ] remove the use of `String`
 
 # Images
+
 ![On this day](./images/on-this-day.jpg "On This Day")
 ![Year progress](./images/year.jpg "Year Progress")

@@ -104,7 +104,7 @@ private:
                 int x = marginLeft + (boxMargin * (j + 1)) + (boxSize * j);
                 int y = marginTop + (boxMargin * (i + 1)) + (boxSize * i);
 
-                if (i < month || i == month && j < day)
+                if (i < month || i == month && j < day - 1)
                 {
                     d.fillRoundRect(x, y, boxSize, boxSize, 2, BLACK);
                 }
@@ -121,7 +121,7 @@ private:
                 // }
 
                 // draw date
-                if (i == month && j == day)
+                if (i == month && j == day - 1)
                 {
                     int16_t xDate, yDate;
                     uint16_t wDate, hDate;
