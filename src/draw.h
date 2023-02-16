@@ -22,20 +22,7 @@ public:
     {
         if (globals::refreshIndex == 0)
         {
-            // TODO all of this error handling logic should be handled in the drawImage method
-            if (d.sdCardInit())
-            {
-                Serial.println("SD Card ok! Reading data...");
-                drawImage(d);
-            }
-            else
-            {
-                d.setCursor(50, 50);
-                d.setTextColor(0, 7);
-                d.setTextSize(4);
-                d.print("error loading sd card");
-                Serial.println("error loading sd card");
-            }
+            drawImage(d);
         }
         else if (globals::refreshIndex == 1)
         {
@@ -45,6 +32,7 @@ public:
         {
             drawRedditPosts(d);
         }
+
         d.display();
         globals::refreshIndex++;
 
@@ -180,6 +168,13 @@ private:
         char *imageAddress;
         imageAddress = new char[60];
         imageAddress = getImageAddress(imageAddress, month, day, globals::imageIndex);
+
+        if (!d.sdCardInit())
+        {
+            Serial.println("SD Card NOT ok! ");
+            // drawErrorMessage(line1, line2, line3)
+            return;
+        }
 
         if (file.open(imageAddress, O_RDONLY))
         {

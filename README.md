@@ -18,6 +18,7 @@ As of now the display can:
 
 # TODO
 
+- [ ] ability to display random text from api
 - [ ] display weather forecast
 - [ ] display when it was last updated
 - [ ] data should be cached

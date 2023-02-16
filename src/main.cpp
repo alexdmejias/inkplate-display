@@ -44,27 +44,29 @@ void setup()
   display.begin();        // Init Inkplate library (you should call this function ONLY ONCE)
   display.clearDisplay(); // Clear frame buffer of display
 
-  // TODO should only happen if RTC is not set
-  connectWifi();
-
-  configTime(globals::gmtOffset_sec, globals::daylightOffset_sec, globals::ntpServer);
-
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo))
+  if (!display.rtcGetSecond())
   {
-    Serial.println("Failed to obtain time");
-    return;
-  }
+    connectWifi();
 
-  WiFi.disconnect();
-  // display.rtcSetTime(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);                               // Send time to RTC
-  display.rtcSetDate(timeinfo.tm_wday, timeinfo.tm_mday, timeinfo.tm_mon, timeinfo.tm_year + 1900); // Send date to RTC
+    configTime(globals::gmtOffset_sec, globals::daylightOffset_sec, globals::ntpServer);
+
+    struct tm timeinfo;
+    if (!getLocalTime(&timeinfo))
+    {
+      Serial.println("Failed to obtain time");
+      // return;
+    }
+
+    WiFi.disconnect();
+    // display.rtcSetTime(timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);                               // Send time to RTC
+    display.rtcSetDate(timeinfo.tm_wday, timeinfo.tm_mday, timeinfo.tm_mon, timeinfo.tm_year + 1900); // Send date to RTC
+  }
 
   display.rtcGetRtcData();
   d.update(display);
 
-  Serial.println(display.readBattery());
-  Serial.println(display.readTemperature(), DEC);
+  // Serial.println(display.readBattery());
+  // Serial.println(display.readTemperature(), DEC);
 
   // DO NOT DELETE
   esp_sleep_enable_timer_wakeup(globals::TIME_TO_SLEEP * globals::uS_TO_S_FACTOR); // Activate wake-up timer
