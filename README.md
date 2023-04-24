@@ -1,4 +1,7 @@
-# WIP
+Update 4/24 - replaced in favor of https://github.com/alexdmejias/dashboard-client-inkplate
+
+
+----
 
 # What is this?
 
